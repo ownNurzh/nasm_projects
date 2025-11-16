@@ -7,8 +7,8 @@ section .data
     len equ $ - name
 
 section .bss
-    console_std_type resd 1
-    written resd 1
+    console_std_type resd 1 ; std type cons
+    written resd 1 ; written buffer after win api
 
 section .text
     global _start ; linker entry
@@ -16,11 +16,11 @@ section .text
 _init_std:
     push -11 ; -11 for default output console
     call _GetStdHandle@4 ; return value in eax
-    mov dword [console_std_type], eax
+    mov dword [console_std_type], eax ; save std type in cons
     ret 
 
 _print:
-    push 0
+    push 0 
     push written
     push ebx ; register for len message
     push esi ; register for message
