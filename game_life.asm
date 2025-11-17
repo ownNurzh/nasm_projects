@@ -6,6 +6,9 @@ section .data
     name db 'nurzh ai', 0ah
     len equ $ - name
 
+    size_world db 9 ; 9 symbols 9x9
+    world TIMES  81  db  0 ; world map
+
 section .bss
     console_std_type resd 1 ; std type cons
     written resd 1 ; written buffer after win api
@@ -27,6 +30,9 @@ _print:
     push dword [console_std_type]
     call _WriteFile@20
     ret
+
+_init_world_map:
+    ;init world 
 
 _start:
 
