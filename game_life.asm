@@ -6,8 +6,12 @@ section .data
     name db 'nurzh ai', 0ah
     len equ $ - name
 
-    size_world db 9 ; 9 symbols 9x9
-    world TIMES  81  db  0 ; world map
+    size_world equ 9 ; 9 symbols 9x9
+    world_area equ size_world * size_world
+    alive_point equ '1' ; alive point symbol
+    dead_point equ '0' ; dead point symbol
+
+    world TIMES world_area db dead_point
 
 section .bss
     console_std_type resd 1 ; std type cons
@@ -39,8 +43,8 @@ _start:
     call _init_std ; init for print function
 
     ;test print function
-    mov esi , name
-    mov ebx , len
+    mov esi , world
+    mov ebx , world_area
     call _print
 
     push 0 ; 1 arg for exitProcess
