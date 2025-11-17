@@ -11,7 +11,7 @@ section .data
 
 section .bss
     console_std_type resd 1 ; std type cons
-    written resd 1 ; written buffer after win api
+    written resd 1 ; written buffer for win api
 
 section .text
     global _start ; linker entry
