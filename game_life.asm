@@ -12,12 +12,12 @@ section .data
     world TIMES world_area db dead_point
 
 section .bss
+    ;win api params
     console_std_type resd 1 ; std type cons
     written resd 1 ; written buffer for win api
+    ;print function default params
     message resb 10 ; 
     message_len resd 1;
-    row resd 1;
-    column resd 1;
 
 section .text
     global _start ; linker entry
@@ -77,8 +77,7 @@ _start:
         cmp ecx , size_world
         jl row_loop
 
-        
-
+    
     jmp _end
 
 
