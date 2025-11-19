@@ -37,15 +37,7 @@ _print:
     call _WriteFile@20
     ret
 
-
-_start:
-
-    call _init_std ; init for print function
-
-    ; =========
-    ; game loop
-    ; =========
-
+_render_game:
     mov ecx , 0 ; row 
     
     row_loop:
@@ -76,8 +68,27 @@ _start:
         inc ecx
         cmp ecx , size_world
         jl row_loop
+    ret
 
-    
+_start:
+
+    call _init_std ; init for print function
+
+    ; =========
+    ; game loop
+    ; =========
+
+    ; ===========
+    ; render loop
+    ; ===========
+
+    ; просто так очистил 'Такие люди, как я, делают меня мизантропом.'
+    xor ecx,ecx
+    xor ebx,ebx
+    xor edx,edx
+    xor eax,eax
+    call _render_game
+
     jmp _end
 
 
