@@ -3,8 +3,6 @@ extern _WriteFile@20
 extern _ExitProcess@4
 
 section .data 
-    name db 'nurzh ai', 0ah
-    len equ $ - name
 
     size_world equ 9 ; 9 symbols 9x9
     world_area equ size_world * size_world
@@ -16,6 +14,7 @@ section .data
 section .bss
     console_std_type resd 1 ; std type cons
     written resd 1 ; written buffer for win api
+    message resb 10 ; one line message buffer
 
 section .text
     global _start ; linker entry
@@ -29,23 +28,35 @@ _init_std:
 _print:
     push 0 
     push written
-    push ebx ; register for len message
-    push esi ; register for message
+    push 10 ; register for len message
+    push message ; register for message
     push dword [console_std_type]
     call _WriteFile@20
     ret
 
-_init_world_map:
-    ;init world 
 
 _start:
 
     call _init_std ; init for print function
 
-    ;test print function
-    mov esi , world
-    mov ebx , world_area
+    mov byte [message], '0'
+    mov byte [message+1], '0'
+    mov byte [message+2], '0'
+    mov byte [message+3], '0' 
+    mov byte [message+4], '0'
+    mov byte [message+5], '0'
+    mov byte [message+6], '0'
+    mov byte [message+7], '0'
+    mov byte [message+8], '0'
+    mov byte [message+9], 0ah
+
+    call _print
+    call _print
     call _print
 
+    jmp _end
+
+
+_end:
     push 0 ; 1 arg for exitProcess
     call _ExitProcess@4
