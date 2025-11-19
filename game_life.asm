@@ -14,7 +14,10 @@ section .data
 section .bss
     console_std_type resd 1 ; std type cons
     written resd 1 ; written buffer for win api
-    message resb 10 ; one line message buffer
+    message resd 1 ; 
+    message_len resb 1;
+    row resd 1;
+    column resd 1;
 
 section .text
     global _start ; linker entry
@@ -28,7 +31,7 @@ _init_std:
 _print:
     push 0 
     push written
-    push 10 ; register for len message
+    push [message_len]; register for len message
     push message ; register for message
     push dword [console_std_type]
     call _WriteFile@20
@@ -39,20 +42,28 @@ _start:
 
     call _init_std ; init for print function
 
-    mov byte [message], '0'
-    mov byte [message+1], '0'
-    mov byte [message+2], '0'
-    mov byte [message+3], '0' 
-    mov byte [message+4], '0'
-    mov byte [message+5], '0'
-    mov byte [message+6], '0'
-    mov byte [message+7], '0'
-    mov byte [message+8], '0'
-    mov byte [message+9], 0ah
+    ; =========
+    ; game loop
+    ; =========
 
-    call _print
-    call _print
-    call _print
+    mov ecx , 0 ; row 
+    mov ebx , 0 ; col 
+
+
+
+    row_loop:
+        push ecx
+        mov al , cl 
+        add al , '0'
+        mov byte [message] , al
+        mov byte [message_len] , 1
+        call _print
+        pop ecx
+        inc ecx
+        cmp ecx , 9
+        jle row_loop
+
+        
 
     jmp _end
 
