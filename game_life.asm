@@ -1,25 +1,37 @@
 extern _GetStdHandle@4
 extern _WriteFile@20
 extern _ExitProcess@4
+extern Sleep
 
 section .data 
-
+    ;=======================================
     size_world equ 9 ; 9 symbols 9x9
     world_area equ size_world * size_world
+    ;=======================================
     alive_point equ '1' ; alive point symbol
     dead_point equ '0' ; dead point symbol
-
+    ;=======================================
     world TIMES world_area db dead_point
+    ;=======================================
+    clear db 27,"[2J" ; <ESC>[2J
+    clear_len equ $-clear 
+    ;=======================================
+    sleep_time equ 300;main loop sleep time
+    ;=======================================
 
 section .bss
+    ;=======================================
     ;win api params
     console_std_type resd 1 ; std type cons
     written resd 1 ; written buffer for win api
+    ;=======================================
     ;print function default params
     message resb 10 ; 
     message_len resd 1;
+    ;=======================================
 
 section .text
+    ;=======================================
     global _start ; linker entry
 
 _init_std:
@@ -37,7 +49,26 @@ _print:
     call _WriteFile@20
     ret
 
+_time_sleep:
+    push ebp
+    mov ebp, esp
+    push sleep_time
+    call Sleep
+    mov esp, ebp
+    pop ebp
+    ret
+
+_clear_term:
+    push 0 
+    push written
+    push clear_len; register for len message
+    push clear ; register for message
+    push dword [console_std_type]
+    call _WriteFile@20
+    ret
+
 _render_game:
+    ;=======================================
     mov ecx , 0 ; row 
     
     row_loop:
@@ -71,24 +102,29 @@ _render_game:
     ret
 
 _start:
-
+    ;=======================================
     call _init_std ; init for print function
-
-    ; =========
+    call _clear_term ; clear terminal
+    ;=======================================
     ; game loop
-    ; =========
+    ;=======================================
 
-    ; ===========
+    ;=======================================
     ; render loop
-    ; ===========
+    ;=======================================
 
     ; просто так очистил 'Такие люди, как я, делают меня мизантропом.'
-    xor ecx,ecx
-    xor ebx,ebx
-    xor edx,edx
-    xor eax,eax
-    call _render_game
-
+    main_loop:
+        xor ecx,ecx
+        xor ebx,ebx
+        xor edx,edx
+        xor eax,eax
+        call _render_game
+        call _time_sleep
+        call _clear_term
+    ;while true
+    jmp main_loop
+    
     jmp _end
 
 
