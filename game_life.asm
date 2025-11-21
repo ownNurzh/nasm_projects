@@ -5,7 +5,7 @@ extern Sleep
 
 section .data 
     ;=======================================
-    size_world equ 9 ; 9 symbols 9x9
+    size_world equ 12 ; world size (size_world x size_world)
     world_area equ size_world * size_world
     ;=======================================
     alive_point equ '1' ; alive point symbol
@@ -18,6 +18,8 @@ section .data
     ;=======================================
     sleep_time equ 300;main loop sleep time
     ;=======================================
+    message_len_from_size_world equ size_world + 1
+    ;=======================================
 
 section .bss
     ;==========================================
@@ -26,7 +28,7 @@ section .bss
     written resd 1 ; written buffer for win api
     ;==========================================
     ;print function default params
-    message resb 10 ; 
+    message resb message_len_from_size_world ; 
     message_len resd 1;
     ;==========================================
 
@@ -90,8 +92,8 @@ _render_game:
             cmp ebx , size_world
             jl column_loop
         ; добавляем \n в конец ,я спецом для этого оставил один лишний байт
-        mov byte [message + 9] , 0ah
-        mov dword [message_len] , 10
+        mov byte [message + size_world] , 0ah
+        mov dword [message_len] , message_len_from_size_world
         call _print
 
         ;берем из стека өйткені винда функциясын шақырған соң регистр почему то очищается
