@@ -40,7 +40,15 @@ _init_std:
     push -11 ; -11 for default output console
     call _GetStdHandle@4 ; return value in eax
     mov dword [console_std_type], eax ; save std type in cons
-    ret 
+    ret
+
+
+_clear_registers:
+    xor ecx,ecx
+    xor ebx,ebx
+    xor edx,edx
+    xor eax,eax
+    ret
 
 _print:
     push 0 
@@ -131,15 +139,16 @@ _start:
     main_loop:
         ;=================================================================
         ; просто так очистил 'Такие люди, как я, делают меня мизантропом.'
-        xor ecx,ecx
-        xor ebx,ebx
-        xor edx,edx
-        xor eax,eax
+        call _clear_registers
         ;=================================================================
 
         ;================
         call _render_game
-
+        ;----------------
+        call _clear_registers
+        ;----------------
+        call _game_loop_logic
+        ;================
         call _time_sleep
         
         call _clear_term
