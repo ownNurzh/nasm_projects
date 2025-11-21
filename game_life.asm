@@ -77,37 +77,54 @@ _clear_term:
     call _WriteFile@20
     ret
 
+_calc_row_col_index:
+    ; input: ecx = row, ebx = column
+    ; output: eax = index
+    mov eax, ecx
+    imul eax,size_world
+    add eax,ebx
+    ret
+
 _game_loop_logic:
-    ;================
+        ;================
+    mov ecx , 0 ; row 
+    
+    logic_row_loop:
+        mov ebx , 0 ; column
+        logic_column_loop:
+            call _calc_row_col_index; eax = index = row * size_world + col
+
+            movzx edx,byte [world + eax]
+
+            inc ebx
+            cmp ebx , size_world
+            jl logic_column_loop
+        inc ecx
+        cmp ecx , size_world
+        jl logic_row_loop
+    ret
 
 _render_game:
     ;================
     mov ecx , 0 ; row 
     
     row_loop:
-        ;стекка лақтырамыз а то винда функциясынан кейн значение жоғалп кетп жатр утечка
+    
         push ecx  
         mov ebx , 0
+
         column_loop:
-            ; крч тут рассчитываем клетку по такой формуле row * 9 + col
-            mov eax, ecx
-            imul eax,size_world
-            add eax,ebx
-            ; 
-            ; movzx чтобы брать только байт и остальное заполнить нулями с обычным mov траблы
+            call _calc_row_col_index
             movzx edx,byte [world + eax]
-            ; добавляем полученную клетку в сообщение который будет выводится после этого цикла
             mov byte [message + ebx], dl
-            ; ну тут просто дефолт ,увеличиваем цикл и проверяем
             inc ebx
             cmp ebx , size_world
             jl column_loop
-        ; добавляем \n в конец ,я спецом для этого оставил один лишний байт
+        
         mov byte [message + size_world] , 0ah
         mov dword [message_len] , message_len_from_size_world
         call _print
 
-        ;берем из стека өйткені винда функциясын шақырған соң регистр почему то очищается
         pop ecx
         inc ecx
         cmp ecx , size_world
