@@ -5,7 +5,7 @@ extern Sleep
 
 section .data 
     ;=======================================
-    size_world equ 12 ; world size (size_world x size_world)
+    size_world equ 11 ; world size (size_world x size_world)
     world_area equ size_world * size_world
     ;=======================================
     alive_point equ '1' ; alive point symbol
@@ -69,6 +69,9 @@ _clear_term:
     call _WriteFile@20
     ret
 
+_game_loop_logic:
+    ;================
+
 _render_game:
     ;================
     mov ecx , 0 ; row 
@@ -103,11 +106,28 @@ _render_game:
         jl row_loop
     ret
 
+_init_glider_in_world:
+    ;=======================================
+    ; glider
+    ; 0 1 0
+    ; 0 0 1
+    ; 1 1 1
+    ;=======================================
+    mov byte [world + 0 * size_world + 1], alive_point
+    mov byte [world + 1 * size_world + 2], alive_point
+    mov byte [world + 2 * size_world ], alive_point
+    mov byte [world + 2 * size_world + 1], alive_point
+    mov byte [world + 2 * size_world + 2], alive_point
+    ret
+
 _start:
     ;=======================================
     call _init_std ; init for print function
     call _clear_term ; clear terminal
     ;=======================================
+
+    call _init_glider_in_world
+
     main_loop:
         ;=================================================================
         ; просто так очистил 'Такие люди, как я, делают меня мизантропом.'
