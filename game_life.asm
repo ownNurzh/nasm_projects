@@ -99,7 +99,27 @@ _calc_row_col_index:
     ret
 
 _change_cell_state:
-    ;
+    ; input: ecx = row, ebx = column , eax = index
+    ; table 8 neighbour cells
+    ; =====
+    ; [x,y]
+    ; [0,-1], # top
+    ; [1,-1], # top-right
+    ; [1,0],  # right
+    ; [1,1],  # bot-right
+    ; [0,1],  # bot
+    ; [-1,1], # bot-left
+    ; [-1,0], # left
+    ; [-1,-1],# top-left
+    ; =====
+    push eax ; save to stack
+    mov eax , 0
+    
+
+
+
+    pop eax ; return from stack
+
 
 _game_loop_logic:
         ;================
