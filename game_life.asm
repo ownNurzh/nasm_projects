@@ -13,8 +13,11 @@ section .data
     ;=======================================
     world TIMES world_area db dead_point
     ;=======================================
-    clear db 27,"[2J" ; <ESC>[2J
+    clear db 27,"[2J" ; <ESC>[2J - for clear
     clear_len equ $-clear 
+
+    move_cursor db 27 ,"[H"; <ESC>[H for move cursor in start
+    move_cursor_len equ $-move_cursor
     ;=======================================
     sleep_time equ 300;main loop sleep time
     ;=======================================
@@ -77,6 +80,16 @@ _clear_term:
     call _WriteFile@20
     ret
 
+_pseudo_clear_term:
+    ;move cursor
+    push 0 
+    push written
+    push move_cursor; register for len message
+    push move_cursor_len ; register for message
+    push dword [console_std_type]
+    call _WriteFile@20
+    ret
+
 _calc_row_col_index:
     ; input: ecx = row, ebx = column
     ; output: eax = index
@@ -84,6 +97,9 @@ _calc_row_col_index:
     imul eax,size_world
     add eax,ebx
     ret
+
+_change_cell_state:
+    ;
 
 _game_loop_logic:
         ;================
@@ -109,7 +125,7 @@ _render_game:
     mov ecx , 0 ; row 
     
     row_loop:
-    
+
         push ecx  
         mov ebx , 0
 
@@ -168,7 +184,7 @@ _start:
         ;================
         call _time_sleep
         
-        call _clear_term
+        call _pseudo_clear_term
         ;================
 
     ;while true
