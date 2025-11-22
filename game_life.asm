@@ -6,10 +6,17 @@ extern Sleep
 section .data 
     ;=======================================
     size_world equ 11 ; world size (size_world x size_world)
+    size_world_dec equ size_world - 1
     world_area equ size_world * size_world
+
     ;=======================================
     alive_point equ '1' ; alive point symbol
     dead_point equ '0' ; dead point symbol
+
+
+    alive_rule_2 dd 2
+    alive_rule_3 dd 3
+    dead_rule_3 dd 3
     ;=======================================
     world TIMES world_area db dead_point
     ;=======================================
@@ -34,6 +41,9 @@ section .bss
     message resb message_len_from_size_world ; 
     message_len resd 1;
     ;==========================================
+    count resd 1;
+    ;==========================================
+    base_clean_world resb world_area ; base clean world for logic
 
 section .text
     ;===========================
@@ -98,6 +108,32 @@ _calc_row_col_index:
     add eax,ebx
     ret
 
+set_alive_cell:
+    mov byte [base_clean_world + eax] , alive_point
+    ret
+
+set_dead_cell:
+    mov byte [base_clean_world + eax] , dead_point
+    ret
+
+init_copy_world:
+    push ecx
+    lea esi, [world]  
+    lea edi, [base_clean_world]         
+    mov ecx, world_area
+    rep movsb  
+    pop ecx
+    ret
+
+rebase_world:
+    push ecx
+    lea esi, [base_clean_world]  
+    lea edi, [world]         
+    mov ecx, world_area
+    rep movsb  
+    pop ecx
+    ret
+
 _change_cell_state:
     ; input: ecx = row, ebx = column , eax = index
     ; table 8 neighbour cells
@@ -112,32 +148,108 @@ _change_cell_state:
     ; [-1,0], # left
     ; [-1,-1],# top-left
     ; =====
-    push eax ; save to stack
-    mov eax , 0
-    
+    mov byte [count] , 0
+    ;side cells
+    cmp ecx , 0
+    je skip_top_cell
+    movzx edx, byte [world + eax - size_world]
+    sub dl, '0'
+    add byte [count] , dl
+    skip_top_cell:
+    cmp ecx , size_world_dec
+    je skip_bot_cell
+    movzx edx, byte [world + eax + size_world]
+    sub dl, '0'
+    add byte [count] , dl
+    skip_bot_cell:
+    cmp ebx , 0
+    je skip_left_cell
+    movzx edx, byte [world + eax - 1]
+    sub dl, '0'
+    add byte [count] , dl
+    skip_left_cell:
+    cmp ebx , size_world_dec
+    je skip_right_cell
+    movzx edx, byte [world + eax + 1]
+    sub dl, '0'
+    add byte [count] , dl
+    skip_right_cell:
+    ;diagonal cells
+    cmp ecx , 0
+    je skip_top_right_cell
+    cmp ebx , size_world_dec
+    je skip_top_right_cell
+    movzx edx, byte [world + eax - size_world + 1]
+    sub dl, '0'
+    add byte [count] , dl
+    skip_top_right_cell:
+    cmp ecx , 0
+    je skip_top_left_cell
+    cmp ebx , 0
+    je skip_top_left_cell
+    movzx edx, byte [world + eax - size_world - 1]
+    sub dl, '0'
+    add byte [count] , dl
+    skip_top_left_cell:
+    cmp ecx , size_world_dec
+    je skip_bot_right_cell
+    cmp ebx , size_world_dec
+    je skip_bot_right_cell
+    movzx edx, byte [world + eax + size_world + 1]
+    sub dl, '0'
+    add byte [count] , dl
+    skip_bot_right_cell:
+    cmp ecx , size_world_dec
+    je skip_bot_left_cell
+    cmp ebx , 0
+    je skip_bot_left_cell
+    movzx edx, byte [world + eax + size_world - 1]
+    sub dl, '0'
+    add byte [count] , dl
+    skip_bot_left_cell:
+    ;check rules
+    movzx edx, byte [world + eax]
+    mov edi , [count]
+    cmp dl , alive_point
+    je check_alive_rules
+    jmp check_dead_rules
+    check_alive_rules:
+        cmp edi , [alive_rule_2]
+        je end_check_cell
+        cmp edi , [alive_rule_3]
+        je end_check_cell
+        call set_dead_cell
 
-
-
-    pop eax ; return from stack
+        jmp end_check_cell
+    check_dead_rules:
+        cmp edi , [dead_rule_3]
+        je alive_cell
+        jmp end_check_cell
+        alive_cell:
+            call set_alive_cell
+        jmp end_check_cell
+    end_check_cell:
+    ret
 
 
 _game_loop_logic:
-        ;================
+
+    call init_copy_world
+    ;================
     mov ecx , 0 ; row 
     
     logic_row_loop:
         mov ebx , 0 ; column
         logic_column_loop:
             call _calc_row_col_index; eax = index = row * size_world + col
-
-            movzx edx,byte [world + eax]
-
+            call _change_cell_state
             inc ebx
             cmp ebx , size_world
             jl logic_column_loop
         inc ecx
         cmp ecx , size_world
         jl logic_row_loop
+    call rebase_world
     ret
 
 _render_game:
@@ -204,7 +316,7 @@ _start:
         ;================
         call _time_sleep
         
-        call _pseudo_clear_term
+        call _clear_term
         ;================
 
     ;while true
